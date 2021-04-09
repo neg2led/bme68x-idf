@@ -1,0 +1,11 @@
+menu "BME68x Sensor API"
+
+        config BME68X_DO_NOT_USE_FPU
+            bool "Disable BME68x API floating point"
+            default n
+            help
+                Disables floating point support in the BME68x API backend.
+                ESP32 processors have hardware floating point, so there's no real reason to do that.
+                You almost certainly don't want this, unless you're porting to an ESP8266?
+
+endmenu # BME68x Sensor API
