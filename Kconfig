@@ -8,4 +8,46 @@ menu "BME68x Sensor API"
                 ESP32 processors have hardware floating point, so there's no real reason to do that.
                 You almost certainly don't want this, unless you're porting to an ESP8266?
 
+        choice BME68X_INTF_DRIVER_MODE
+            prompt "Driver Mode"
+            default BME68X_INTF_DRIVER_I2C
+            help
+                BME68x sensors support both I2C and SPI communication modes; select which you'd like to use.
+                For I2C, pull CSB high on power-up. If CSB is pulled down, the I2C interface is disabled until device power is reset!
+
+            config BME68X_INTF_DRIVER_I2C
+                bool "I2C mode"
+            config BME68X_INTF_DRIVER_SPI
+                bool "SPI mode"
+        endchoice
+
+        config BME68X_INTF_DRIVER
+            string
+            default "BME68X_I2C_INTF" if BME68X_ESP32_DRIVER_I2C
+            default "BME68X_SPI_INTF" if BME68X_ESP32_DRIVER_SPI
+
+        menu "BME68x I2C configuration"
+            visible if BME68X_ESP32_DRIVER_I2C
+
+            config BME68X_I2C_PORT_NUM
+                int "I2C port number"
+                range 0 CONFIG_I2C_PORT_NUM_MAX
+                default 0
+                help
+                    Select which I2C port number you'd like to use. Must be less than I2C_NUM_MAX
+
+            config BME68X_I2C_FREQ_KHZ
+                int "I2C master clock"
+                range 100 1000
+                default 400
+                help
+                    I2C clock frequency in KHz for the BME68x I2C master, range 100KHz-1000KHz
+                    BME68x supports up to 3.4MHz, but ESP-IDF is limited to 1MHz at the moment.
+
+            config BME68X_I2C_SCL_GPIO
+                int "SCL Pin"
+                range 0
+
+        endmenu
+
 endmenu # BME68x Sensor API

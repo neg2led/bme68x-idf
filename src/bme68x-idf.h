@@ -1,6 +1,7 @@
 #pragma once
 /**
  * Copyright (C) 2020 Bosch Sensortec GmbH. All rights reserved.
+ * Copyright (C) 2021 Andrew Holmes (github/neg2led). All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -9,11 +10,11 @@
 extern "C" {
 #endif /*__cplusplus */
 
-#include "bme68x.h"
 #include <esp_err.h>
 
 // we use esp_err_t around here, yessir
 #define BME68X_INTF_RET_TYPE esp_err_t
+#define BME68X_INTF_RET_SUCCESS ESP_OK
 
 /*!
  *  @brief Function to select the interface between SPI and I2C.

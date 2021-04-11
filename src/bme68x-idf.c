@@ -8,14 +8,19 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#include "bme68x.h"
-#include "coines.h"
+#include "driver/i2c.h"
+#include "driver/spi.h"
+#include "esp_log.h"
+#include "sdkconfig.h"
+
 #include "bme68x-idf.h"
+
+#include "bme68x_defs.h"
+#include "bme68x.h"
 
 /******************************************************************************/
 /*!                 Macro definitions                                         */
-/*! BME68X shuttle board ID */
-#define BME68X_SHUTTLE_ID  0x93
+
 
 /******************************************************************************/
 /*!                Static variable definition                                 */
