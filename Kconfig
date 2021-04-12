@@ -1,53 +1,198 @@
 menu "BME68x Sensor API"
 
-        config BME68X_DO_NOT_USE_FPU
-            bool "Disable BME68x API floating point"
-            default n
-            help
-                Disables floating point support in the BME68x API backend.
-                ESP32 processors have hardware floating point, so there's no real reason to do that.
-                You almost certainly don't want this, unless you're porting to an ESP8266?
+    config BME68X_USE_GPIO_POWER
+        bool "BME68x GPIO power"
+        default y
+        help
+            BME68x sensors use under 1mA and can be easily powered from a GPIO pin, allowing
+            the sensor to be powered on/off on-demand. Check this box if you'd like to do that.
 
-        choice BME68X_INTF_DRIVER_MODE
-            prompt "Driver Mode"
-            default BME68X_INTF_DRIVER_I2C
-            help
-                BME68x sensors support both I2C and SPI communication modes; select which you'd like to use.
-                For I2C, pull CSB high on power-up. If CSB is pulled down, the I2C interface is disabled until device power is reset!
+    config BME68X_POWER_GPIO
+        depends on BME68X_USE_GPIO_POWER
+        int "BME68x power GPIO number"
+        range -1 39 if IDF_TARGET_ESP32
+        range -1 46 if IDF_TARGET_ESP32S2
+        range -1 47 if IDF_TARGET_ESP32S3
+        range -1 22 if IDF_TARGET_ESP32C3
+        default 8 if BME68X_USE_GPIO_POWER
+        default -1
+        help
+            GPIO pin connected to BME68x VDD and VDDIO pins.
 
-            config BME68X_INTF_DRIVER_I2C
-                bool "I2C mode"
-            config BME68X_INTF_DRIVER_SPI
-                bool "SPI mode"
+    config BME68X_POLL_PERIOD
+        int "BME68x device polling period (ms)"
+        default 10000
+        help
+            Polling period for BME68x device readings, in milliseconds.
+
+    config BME68X_DO_NOT_USE_FPU
+        bool "Disable BME68x API floating point"
+        default n
+        help
+            Disables floating point support in the BME68x API backend.
+            ESP32 processors have hardware floating point, so there's no real reason to do that.
+            You almost certainly don't want this, unless you're porting to an ESP8266?
+
+    choice BME68X_INTF_DRIVER_MODE
+        prompt "Driver Mode"
+        default BME68X_INTF_DRIVER_I2C
+        help
+            BME68x sensors support both I2C and SPI communication modes; select which you'd like to use.
+            For I2C, pull CSB high on power-up. If CSB is pulled down, the I2C interface is disabled until
+            device power is reset!
+            This driver does not support 3-wire SPI mode at the moment, 4-wire only.
+
+        config BME68X_INTF_DRIVER_I2C
+            bool "I2C mode"
+        config BME68X_INTF_DRIVER_SPI
+            bool "SPI mode"
+    endchoice
+
+    config BME68X_INTF_DRIVER
+        string
+        default "BME68X_I2C_INTF" if BME68X_INTF_DRIVER_I2C
+        default "BME68X_SPI_INTF" if BME68X_INTF_DRIVER_SPI
+
+    menu "BME68x I2C configuration"
+        visible if BME68X_INTF_DRIVER_I2C
+
+        choice BME68X_I2C_ADDR_SEL
+            prompt "I2C Address"
+            default BME68X_I2C_ADDR_76
+            help
+                BME68x sensors can be set to I2C address 0x76 or 0x77 depending on whether
+                the SDO pin is pulled to GND (0x76) or VDDIO (0x77). 0x77 is also used by the BMP280.
+                Choose your sensor's address here.
+
+            config BME68X_I2C_ADDR_76
+                bool "0x76 (SDO Low)"
+            config BME68X_I2C_ADDR_77
+                bool "0x77 (SDO High)"
         endchoice
 
-        config BME68X_INTF_DRIVER
-            string
-            default "BME68X_I2C_INTF" if BME68X_ESP32_DRIVER_I2C
-            default "BME68X_SPI_INTF" if BME68X_ESP32_DRIVER_SPI
+        config BME68X_I2C_ADDR
+            hex
+            default 0x76 if BME68X_I2C_ADDR_76
+            default 0x77 if BME68X_I2C_ADDR_77
 
-        menu "BME68x I2C configuration"
-            visible if BME68X_ESP32_DRIVER_I2C
+        config BME68X_I2C_PORT_NUM
+            int "I2C port"
+            range 0 1 if IDF_TARGET_ESP32 || IDF_TARGET_ESP32S2 || IDF_TARGET_ESP32S3
+            range 0 0 if IDF_TARGET_ESP32C3
+            default 0
+            help
+                Select which I2C port number you'd like to use. Must be less than I2C_NUM_MAX.
+                ESP32-C3 only has one I2C port.
 
-            config BME68X_I2C_PORT_NUM
-                int "I2C port number"
-                range 0 CONFIG_I2C_PORT_NUM_MAX
-                default 0
-                help
-                    Select which I2C port number you'd like to use. Must be less than I2C_NUM_MAX
+        config BME68X_I2C_FREQ_KHZ
+            int "I2C clock speed"
+            range 100 1000
+            default 400
+            help
+                I2C clock frequency in KHz for the BME68x I2C master, range 100-1000KHz (1MHz)
+                BME68x supports up to 3.4MHz, but ESP-IDF is limited to 1MHz at the moment.
 
-            config BME68X_I2C_FREQ_KHZ
-                int "I2C master clock"
-                range 100 1000
-                default 400
-                help
-                    I2C clock frequency in KHz for the BME68x I2C master, range 100KHz-1000KHz
-                    BME68x supports up to 3.4MHz, but ESP-IDF is limited to 1MHz at the moment.
+        config BME68X_I2C_SCL_GPIO
+            int "SCL Pin"
+            range 0 39 if IDF_TARGET_ESP32
+            range 0 46 if IDF_TARGET_ESP32S2
+            range 0 47 if IDF_TARGET_ESP32S3
+            range 0 22 if IDF_TARGET_ESP32C3
+            default 4
+            help
+                GPIO pin number for BME68x SCL line.
 
-            config BME68X_I2C_SCL_GPIO
-                int "SCL Pin"
-                range 0
+        config BME68X_I2C_SDA_GPIO
+            int "SDA Pin"
+            range 0 39 if IDF_TARGET_ESP32
+            range 0 46 if IDF_TARGET_ESP32S2
+            range 0 47 if IDF_TARGET_ESP32S3
+            range 0 22 if IDF_TARGET_ESP32C3
+            default 5
+            help
+                GPIO pin number for BME68x SDA line.
 
-        endmenu
+    endmenu
+
+    menu "BME68x SPI configuration"
+        visible if BME68X_INTF_DRIVER_SPI
+
+        choice BME68X_SPI_HOST_SEL
+            prompt "SPI Controller"
+            default BME68X_SPI_USE_SPI2 if IDF_TARGET_ESP32C3
+            default BME68X_SPI_USE_SPI3
+            help
+                Choose which SPI host to use. SPI0 and SPI1 are not supported - SPI0 is used for flash,
+                and SPI1 is effectively restricted to PSRAM use, so SPI2 (HSPI) and SPI3 (VSPI) are your choices.
+                ESP32-C3 has no SPI3, so SPI2 must be used.
+
+            config BME68X_SPI_USE_SPI2
+                bool "SPI2 (HSPI)"
+            config BME68X_SPI_USE_SPI3
+                bool "SPI3 (VSPI)"
+
+        endchoice
+        config BME68X_SPI_HOST
+            int
+            default 1 if BME68X_SPI_USE_SPI2
+            default 2 if BME68X_SPI_USE_SPI3
+
+        config BME68X_SPI_MISO_GPIO
+            int "SDO Pin"
+            range -1 39 if IDF_TARGET_ESP32
+            range -1 46 if IDF_TARGET_ESP32S2
+            range -1 47 if IDF_TARGET_ESP32S3
+            range -1 22 if IDF_TARGET_ESP32C3
+            default 2 if IDF_TARGET_ESP32C3
+            default 37 if IDF_TARGET_ESP32S2
+            default 19
+            help
+                GPIO pin number for BME68x SDO (MISO) signal.
+                On ESP32, use pin 19 for full-speed (IOMUX) support.
+                ESP32-S2, S3, and C3 can use any pin.
+
+        config BME68X_SPI_MOSI_GPIO
+            int "SDI Pin"
+            range -1 39 if IDF_TARGET_ESP32
+            range -1 46 if IDF_TARGET_ESP32S2
+            range -1 47 if IDF_TARGET_ESP32S3
+            range -1 22 if IDF_TARGET_ESP32C3
+            default 7 if IDF_TARGET_ESP32C3
+            default 35 if IDF_TARGET_ESP32S2
+            default 23
+            help
+                GPIO pin number for BME68x SDI (MOSI) signal.
+                On ESP32, use pin 23 for full-speed (IOMUX) support.
+                ESP32-S2, S3, and C3 can use any pin.
+
+        config BME68X_SPI_SCLK_GPIO
+            int "SCK Pin"
+            range 0 39 if IDF_TARGET_ESP32
+            range 0 46 if IDF_TARGET_ESP32S2
+            range 0 47 if IDF_TARGET_ESP32S3
+            range 0 22 if IDF_TARGET_ESP32C3
+            default 6 if IDF_TARGET_ESP32C3
+            default 36 if IDF_TARGET_ESP32S2
+            default 18
+            help
+                GPIO pin number for BME68x SCK (SCLK) signal.
+                On ESP32, use pin 18 for full-speed (IOMUX) support.
+                ESP32-S2, S3, and C3 can use any pin.
+
+        config BME68X_SPI_CS_GPIO
+            int "CSB Pin"
+            range 0 39 if IDF_TARGET_ESP32
+            range 0 46 if IDF_TARGET_ESP32S2
+            range 0 47 if IDF_TARGET_ESP32S3
+            range 0 22 if IDF_TARGET_ESP32C3
+            default 34 if IDF_TARGET_ESP32S2
+            default 10 if IDF_TARGET_ESP32C3
+            default 5
+            help
+                GPIO pin number for BME68x CSB (CS) signal.
+                On ESP32, use pin 5 for full-speed (IOMUX) support.
+                ESP32-S2, S3, and C3 can use any pin.
+
+    endmenu
 
 endmenu # BME68x Sensor API
