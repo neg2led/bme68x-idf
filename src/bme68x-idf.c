@@ -89,22 +89,22 @@ void bme68x_check_rslt(const char api_name[], int8_t rslt)
             ESP_LOGE(TAG, "API name [%s]  Error [%d] : Null pointer\r\n", api_name, rslt);
             break;
         case BME68X_E_COM_FAIL:
-            printf("API name [%s]  Error [%d] : Communication failure\r\n", api_name, rslt);
+            ESP_LOGE(TAG, "API name [%s]  Error [%d] : Communication failure\r\n", api_name, rslt);
             break;
         case BME68X_E_INVALID_LENGTH:
-            printf("API name [%s]  Error [%d] : Incorrect length parameter\r\n", api_name, rslt);
+            ESP_LOGE(TAG, "API name [%s]  Error [%d] : Incorrect length parameter\r\n", api_name, rslt);
             break;
         case BME68X_E_DEV_NOT_FOUND:
-            printf("API name [%s]  Error [%d] : Device not found\r\n", api_name, rslt);
+            ESP_LOGE(TAG, "API name [%s]  Error [%d] : Device not found\r\n", api_name, rslt);
             break;
         case BME68X_E_SELF_TEST:
-            printf("API name [%s]  Error [%d] : Self test error\r\n", api_name, rslt);
+            ESP_LOGE(TAG, "API name [%s]  Error [%d] : Self test error\r\n", api_name, rslt);
             break;
         case BME68X_W_NO_NEW_DATA:
-            printf("API name [%s]  Warning [%d] : No new data found\r\n", api_name, rslt);
+            ESP_LOGE(TAG, "API name [%s]  Warning [%d] : No new data found\r\n", api_name, rslt);
             break;
         default:
-            printf("API name [%s]  Error [%d] : Unknown error code\r\n", api_name, rslt);
+            ESP_LOGE(TAG, "API name [%s]  Error [%d] : Unknown error code\r\n", api_name, rslt);
             break;
     }
 }
@@ -116,37 +116,11 @@ int8_t bme68x_interface_init(struct bme68x_dev *bme, uint8_t intf)
 
     if (bme != NULL)
     {
-        int16_t result = coines_open_comm_intf(COINES_COMM_INTF_USB);
-        if (result < COINES_SUCCESS)
-        {
-            printf(
-                "\n Unable to connect with Application Board ! \n" " 1. Check if the board is connected and powered on. \n" " 2. Check if Application Board USB driver is installed. \n"
-                " 3. Check if board is in use by another application. (Insufficient permissions to access USB) \n");
-            exit(result);
-        }
-
-        result = coines_get_board_info(&board_info);
-
-#if defined(PC)
-        setbuf(stdout, NULL);
-#endif
-
-        if (result == COINES_SUCCESS)
-        {
-            if ((board_info.shuttle_id != BME68X_SHUTTLE_ID))
-            {
-                printf("! Warning invalid sensor shuttle \n ," "This application will not support this sensor \n");
-                exit(COINES_E_FAILURE);
-            }
-        }
-
-        coines_set_shuttleboard_vdd_vddio_config(0, 0);
-        coines_delay_msec(100);
 
         /* Bus configuration : I2C */
         if (intf == BME68X_I2C_INTF)
         {
-            printf("I2C Interface\n");
+            ESP_LOGI(TAG, "I2C Interface\n");
             dev_addr = BME68X_I2C_ADDR_LOW;
             bme->read = bme68x_i2c_read;
             bme->write = bme68x_i2c_write;
@@ -156,19 +130,13 @@ int8_t bme68x_interface_init(struct bme68x_dev *bme, uint8_t intf)
         /* Bus configuration : SPI */
         else if (intf == BME68X_SPI_INTF)
         {
-            printf("SPI Interface\n");
+            ESP_LOGI(TAG, "SPI Interface\n");
             dev_addr = COINES_SHUTTLE_PIN_7;
             bme->read = bme68x_spi_read;
             bme->write = bme68x_spi_write;
             bme->intf = BME68X_SPI_INTF;
             coines_config_spi_bus(COINES_SPI_BUS_0, COINES_SPI_SPEED_7_5_MHZ, COINES_SPI_MODE0);
         }
-
-        coines_delay_msec(100);
-
-        coines_set_shuttleboard_vdd_vddio_config(3300, 3300);
-
-        coines_delay_msec(100);
 
         bme->delay_us = bme68x_delay_us;
         bme->intf_ptr = &dev_addr;
@@ -184,13 +152,5 @@ int8_t bme68x_interface_init(struct bme68x_dev *bme, uint8_t intf)
 
 void bme68x_coines_deinit(void)
 {
-    fflush(stdout);
 
-    coines_set_shuttleboard_vdd_vddio_config(0, 0);
-    coines_delay_msec(1000);
-
-    /* Coines interface reset */
-    coines_soft_reset();
-    coines_delay_msec(1000);
-    coines_close_comm_intf(COINES_COMM_INTF_USB);
 }
