@@ -7,9 +7,10 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 #include <freertos/FreeRTOS.h>
-#include <freertos/task.h>>
+#include <freertos/task.h>
 
 #include "esp_system.h"
 #include "sdkconfig.h"
@@ -35,7 +36,6 @@
 
 /******************************************************************************/
 /*!                Static variable definition                                 */
-static i2c_dev_t bme_dev;
 static const char *TAG = "bme68x";
 
 /******************************************************************************/
@@ -132,9 +132,9 @@ esp_err_t bme68x_interface_init(struct bme68x_dev *bme, uint8_t intf) {
 #endif
 
     // allocate some memory for the i2c_dev_t
-    i2c_dev_t *dev = heap_caps_malloc(sizeof(i2c_dev_t), MALLOC_CAP_8BIT);
+    i2c_dev_t *dev = malloc(sizeof(i2c_dev_t));
     if (!dev) return ESP_ERR_NO_MEM;
-    memset(&dev, 0, sizeof(i2c_dev_t));
+    memset(dev, 0, sizeof(i2c_dev_t));
 
     // configure the i2c_dev_t
     dev->port                 = BME_I2C_PORT;
@@ -145,7 +145,7 @@ esp_err_t bme68x_interface_init(struct bme68x_dev *bme, uint8_t intf) {
     dev->cfg.scl_pullup_en    = GPIO_PULLUP_ENABLE;
     dev->cfg.master.clk_speed = BME_I2C_FREQ;
 
-    err = i2c_dev_create_mutex(&dev->i2c_dev);
+    err = i2c_dev_create_mutex(dev);
     if (err != ESP_OK) return err;
 
     // save details in the bme struct
@@ -168,7 +168,7 @@ esp_err_t bme68x_interface_init(struct bme68x_dev *bme, uint8_t intf) {
  */
 esp_err_t bme68x_interface_deinit(struct bme68x_dev *bme) {
     esp_err_t err = ESP_OK;
-    err = i2c_dev_delete_mutex(bme->intf_ptr));
+    err = i2c_dev_delete_mutex(bme->intf_ptr);
     if (err != ESP_OK) return err;
     free(bme->intf_ptr);
 

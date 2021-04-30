@@ -1,6 +1,6 @@
-file(GLOB component_srcs BME68x-Sensor-API/*.c)
+set(component_srcs "src/bme68x-idf.c")
 
-list(APPEND component_srcs "src/bme68x-idf.c")
+list(APPEND component_srcs "BME68x-Sensor-API/bme68x.c")
 
 set(component_include "BME68x-Sensor-API" "src")
 

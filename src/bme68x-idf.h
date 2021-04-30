@@ -9,6 +9,11 @@
 #include <esp_err.h>
 #include <esp_log.h>
 
+#define BME68X_INTF_RET_TYPE esp_err_t
+#define BME68X_INTF_RET_SUCCESS ESP_OK
+
+#include "bme68x_defs.h"
+
 /*!
  *  @brief Function to select the interface between SPI and I2C.
  *
