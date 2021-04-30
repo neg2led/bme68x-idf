@@ -143,9 +143,9 @@ menu "BME68x Sensor API"
             range -1 46 if IDF_TARGET_ESP32S2
             range -1 47 if IDF_TARGET_ESP32S3
             range -1 22 if IDF_TARGET_ESP32C3
+            default 19
             default 2 if IDF_TARGET_ESP32C3
             default 37 if IDF_TARGET_ESP32S2
-            default 19
             help
                 GPIO pin number for BME68x SDO (MISO) signal.
                 On ESP32, use pin 19 for full-speed (IOMUX) support.
@@ -157,9 +157,9 @@ menu "BME68x Sensor API"
             range -1 46 if IDF_TARGET_ESP32S2
             range -1 47 if IDF_TARGET_ESP32S3
             range -1 22 if IDF_TARGET_ESP32C3
+            default 23
             default 7 if IDF_TARGET_ESP32C3
             default 35 if IDF_TARGET_ESP32S2
-            default 23
             help
                 GPIO pin number for BME68x SDI (MOSI) signal.
                 On ESP32, use pin 23 for full-speed (IOMUX) support.
@@ -171,9 +171,9 @@ menu "BME68x Sensor API"
             range 0 46 if IDF_TARGET_ESP32S2
             range 0 47 if IDF_TARGET_ESP32S3
             range 0 22 if IDF_TARGET_ESP32C3
+            default 18
             default 6 if IDF_TARGET_ESP32C3
             default 36 if IDF_TARGET_ESP32S2
-            default 18
             help
                 GPIO pin number for BME68x SCK (SCLK) signal.
                 On ESP32, use pin 18 for full-speed (IOMUX) support.
@@ -185,9 +185,9 @@ menu "BME68x Sensor API"
             range 0 46 if IDF_TARGET_ESP32S2
             range 0 47 if IDF_TARGET_ESP32S3
             range 0 22 if IDF_TARGET_ESP32C3
+            default 5
             default 34 if IDF_TARGET_ESP32S2
             default 10 if IDF_TARGET_ESP32C3
-            default 5
             help
                 GPIO pin number for BME68x CSB (CS) signal.
                 On ESP32, use pin 5 for full-speed (IOMUX) support.
